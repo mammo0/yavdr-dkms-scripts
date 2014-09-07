@@ -7,3 +7,4 @@ temp-build/*
 templates/*/debian/changelog
 tmp/*
 dkms.conf.*
+/.project

@@ -24,11 +24,11 @@ if [ -d updates/linux-media -a -d updates/media_build ]; then
     cd ..
 else
     cd updates/
-    git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git linux-media
+    git clone git://github.com/torvalds/linux.git linux-media
     cd linux-media
     git remote add linuxtv git://linuxtv.org/media_tree.git
     git remote update
-    git checkout -b v3.3 remotes/linuxtv/staging/for_v3.3
+    git checkout -b media-master remotes/linuxtv/master
     cd ..
     git clone git://linuxtv.org/media_build.git
 fi
@@ -45,8 +45,8 @@ VERSION=git`git rev-list --all | wc -l`
 cd ../media_build
 VERSION=$VERSION.`git rev-list --all | wc -l`
 cd ../..
-git rev-list --max-count=1 HEAD > repositories/linux-media.revision
-echo $VERSION > repositories/linux-media.version
+git rev-list --max-count=1 HEAD > ./repositories/linux-media.revision
+echo $VERSION > ./repositories/linux-media.version
 echo "linux-media: Update ended. Now: $VERSION"
 }
 
@@ -59,7 +59,7 @@ if [ -d s2-liplianin ]; then
     hg update
     cd ..
 else
-    hg clone http://mercurial.intuxication.org/hg/s2-liplianin-ahead s2-liplianin
+    hg clone http://bitbucket.org/liplianin/s2-liplianin-v39 s2-liplianin
 fi
 rm -rf ../repositories/s2-liplianin
 tar c s2-liplianin --exclude=".hg" --exclude ".git" | tar x -C ../repositories/
@@ -70,8 +70,8 @@ cd ..
 echo "s2-liplianin: Update ended. Now: $VERSION"
 }
 
-KERNEL=3.2.0-6-generic
-RELEASE=precise
+KERNEL=$(uname -r)
+RELEASE=$(lsb_release --codename | cut -f2)
 #KERNEL=2.6.38-12-generic
 #RELEASE=natty
 if [ -z "$KERNEL" ]; then
@@ -159,7 +159,7 @@ if [ ! -d temp-build ]; then
        fi
        cd ..
     fi
-
+    
     make -j5 -C temp-build KERNELRELEASE=$KERNEL VER=$KERNEL
 fi
 
@@ -218,11 +218,16 @@ dkms --sourcetree $srctree --dkmstree $dkmstree add -m ${REPO} -v $VERSION -k $K
 dkms --sourcetree $srctree --dkmstree $dkmstree build -m ${REPO} -v $VERSION -k $KERNEL
 # build debian source package
 dkms --sourcetree $srctree --dkmstree $dkmstree mkdsc -m ${REPO} -v $VERSION -k $KERNEL
+mkdir -p ./packages/dsc/
 cp $dkmstree/${REPO}/$VERSION/dsc/* ./packages/dsc/
 
 # mkdeb
 dkms --sourcetree $srctree --dkmstree $dkmstree mkdeb -m ${REPO} -v $VERSION -k $KERNEL
+mkdir -p ./packages/deb/
 cp $dkmstree/${REPO}/$VERSION/deb/* ./packages/deb/
+
+# cleaning
+bash ./make-dkms.sh clean
 
 # upload to ppa
 #dput ppa:yavdr/main ./packages/dsc/$REPO-dkms_$VERSION*.changes
