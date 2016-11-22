@@ -24,13 +24,13 @@ if [ -d updates/linux-media -a -d updates/media_build ]; then
     cd ..
 else
     cd updates/
-    git clone git://github.com/torvalds/linux.git linux-media
+    git clone --depth 1 git://github.com/torvalds/linux.git linux-media
     cd linux-media
     git remote add linuxtv git://linuxtv.org/media_tree.git
-    git remote update
+    git fetch --depth 1 linuxtv
     git checkout -b media-master remotes/linuxtv/master
     cd ..
-    git clone git://linuxtv.org/media_build.git
+    git clone --depth 1 git://linuxtv.org/media_build.git
 fi
 
 cd media_build/linux
